@@ -4,7 +4,7 @@ namespace XillioAPIService
 {
     public class PingService
     {
-        System.Timers.Timer ConfigurationRefreshDelay = new System.Timers.Timer(10000000);
+        System.Timers.Timer ConfigurationRefreshDelay = new System.Timers.Timer(100000);
         System.Timers.Timer AuthenticationRefreshDelay = new System.Timers.Timer();
         private XillioEngineAPI api;
 
@@ -20,6 +20,7 @@ namespace XillioAPIService
             ConfigurationRefreshDelay.Enabled = true;
             RunAuthentication(null, null);
             AuthenticationRefreshDelay.Enabled = true;
+            RefreshConfigurations(null, null);
         }
 
         public void Stop()
@@ -36,7 +37,7 @@ namespace XillioAPIService
         {
             // time to do a pull.
             ConfigurationRefreshDelay.Enabled = false;
-            LogService.Log(DateTime.Now.ToLongTimeString() + " Going to do a pull from Xillio API");
+            LogService.Log("Going to do a pull from Xillio API");
             
             InfoHolder.Configurations = api.GetConfigurations();
             if (InfoHolder.Configurations == null)
@@ -51,6 +52,7 @@ namespace XillioAPIService
         
         private void RunAuthentication(object sender, System.Timers.ElapsedEventArgs e)
         {
+            LogService.Log("authenticating");
             InfoHolder.auth = api.Authenticate("user", "password", "client", "secret");
             AuthenticationRefreshDelay.Interval = InfoHolder.auth.expires_in;
         }

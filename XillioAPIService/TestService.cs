@@ -10,7 +10,7 @@ namespace XillioAPIService
     
     /// <summary>
     /// To run this service call: C:\Windows\Microsoft.NET\Framework\v4.0.30319\installutil.exe .\XillioAPIService.exe
-    /// in the bin/debug folder
+    /// in the bin/debug folder in admin mode. and uninstall using /u
     /// </summary>
     public partial class TestService : ServiceBase
     {
@@ -56,6 +56,8 @@ namespace XillioAPIService
             serviceStatus.dwCurrentState = ServiceState.SERVICE_START_PENDING;
             serviceStatus.dwWaitHint = 100000;
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+            
+            LogService.Log("starting up the service.");
 
             fileSystemWatcher1.EnableRaisingEvents = true;
 
@@ -67,6 +69,7 @@ namespace XillioAPIService
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+            LogService.Log("service started.");
         }
 
         protected override void OnStop()

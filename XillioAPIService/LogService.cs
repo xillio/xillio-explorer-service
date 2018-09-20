@@ -9,11 +9,12 @@ namespace XillioAPIService
         public static void Log(string content)
         {
             FileStream fs = new FileStream(logLocation, FileMode.OpenOrCreate, FileAccess.Write);
-            StreamWriter sw = new StreamWriter(fs);
-            sw.BaseStream.Seek(0, SeekOrigin.End);
-            sw.WriteLine(content);
-            sw.Flush();
-            sw.Close();
+            using (StreamWriter sw = new StreamWriter(fs))
+            {
+                sw.BaseStream.Seek(0, SeekOrigin.End);
+                sw.WriteLine(DateTime.Now.ToLongTimeString() + " " + content);
+                sw.Flush();
+            }
         }
 
         public static void Clear()
