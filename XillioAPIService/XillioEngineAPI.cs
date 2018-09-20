@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Flurl;
+using Flurl.Http;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using XillioAPIService.Model;
 
 namespace XillioAPIService
 {
     public class XillioEngineAPI
     {
+        private const string BASE_URL = "http://tenant.localhost:8080";
         private HttpClient client = new HttpClient();
+        private string token;
         
         public XillioEngineAPI()
         {
-            client.BaseAddress = new Uri("http://tenant.localhost:8080");
+            client.BaseAddress = new Uri(BASE_URL);
         }
 
         public XillioEngineAPI(Uri baseUrl)
@@ -26,36 +32,40 @@ namespace XillioAPIService
 
         public AuthorizationResponse Authenticate(String username, String password, String clientId, String clientSecret)
         {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            dictionary.Add("grant_type", "password");
-            dictionary.Add("username", username);
-            dictionary.Add("password", password);
-            var request = new HttpRequestMessage(HttpMethod.Post, "/oauth/token");
-            request.Content = new FormUrlEncodedContent(dictionary);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.UTF8.GetBytes(clientId + ":" + clientSecret)));
-            
-            var parsed = ParseResponse<AuthorizationResponse>(client.SendAsync(request));
-            parsed.ContinueWith(r =>
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-                    (r.Result).access_token);
-            });
-            return parsed.Result;
+            return BASE_URL
+                .AppendPathSegments("oauth", "token")
+                .WithHeader("Content-Type", "application/x-www-form-urlencoded")
+                .WithBasicAuth(clientId, clientSecret)
+                .PostJsonAsync(new
+                {
+                    grant_type = "password",
+                    username = username,
+                    password = password
+                }).ReceiveJson<AuthorizationResponse>().Result;
         }
 
         public List<BaseConfiguration> GetConfigurations()
         {
-            var response = client.GetAsync("v2/configurations");
-            if (response.Result.StatusCode != HttpStatusCode.OK)
-            {
-                return null;
-            }
-            var result = ParseResponse<List<BaseConfiguration>>(response);
-            result.Wait();
-            return result.Result;
+            return BASE_URL
+                .AppendPathSegments("v2", "configurations")
+                .WithOAuthBearerToken(token)
+                .GetJsonAsync<List<BaseConfiguration>>().Result;
         }
 
+        public JObject GetEntity(string configuration, string id)
+        {
+            return BASE_URL
+                .AppendPathSegment($"v2/{configuration}/entities/{id}")
+                .SetQueryParams(new {scope = "entity"})
+                .WithOAuthBearerToken(token)
+                .GetJsonAsync<JObject>().Result;
+        }
+
+        public List<JObject> GetChildren(string id)
+        {
+            return null;
+        }
+        
         public Task<T> ParseResponse<T>(Task<HttpResponseMessage> response)
         {
             return response.ContinueWith(r => r.Result.Content.ReadAsStringAsync())
