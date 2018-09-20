@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Timers;
 using Newtonsoft.Json;
 
 namespace XillioAPIService.Model
@@ -37,6 +38,12 @@ namespace XillioAPIService.Model
 
         [JsonProperty("config")]
         public Dictionary<string, string> Config
+        {
+            get;
+            set;
+        }
+
+        public Timer RefreshDelay
         {
             get;
             set;

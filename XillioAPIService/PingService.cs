@@ -1,26 +1,28 @@
 ﻿using System;
+using System.Timers;
+using XillioAPIService.Model;
 
 namespace XillioAPIService
 {
     public class PingService
     {
-        System.Timers.Timer ConfigurationRefreshDelay = new System.Timers.Timer(100000);
-        System.Timers.Timer AuthenticationRefreshDelay = new System.Timers.Timer();
+        Timer ConfigurationRefreshDelay = new System.Timers.Timer(600000);
+        Timer AuthenticationRefreshDelay = new System.Timers.Timer();
         private XillioEngineAPI api;
 
         public PingService(XillioEngineAPI api)
         {
             this.api = api;
-            ConfigurationRefreshDelay.Elapsed += new System.Timers.ElapsedEventHandler(RefreshConfigurations);
-            AuthenticationRefreshDelay.Elapsed += new System.Timers.ElapsedEventHandler(RunAuthentication);
+            ConfigurationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args) { RefreshConfigurations(); };
+            AuthenticationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args) { RunAuthentication(); };
         }
 
         public void Start()
         {
             ConfigurationRefreshDelay.Enabled = true;
-            RunAuthentication(null, null);
+            RunAuthentication();
             AuthenticationRefreshDelay.Enabled = true;
-            RefreshConfigurations(null, null);
+            RefreshConfigurations();
         }
 
         public void Stop()
@@ -31,9 +33,7 @@ namespace XillioAPIService
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void RefreshConfigurations(object sender, System.Timers.ElapsedEventArgs e)
+        private void RefreshConfigurations()
         {
             // time to do a pull.
             ConfigurationRefreshDelay.Enabled = false;
@@ -49,8 +49,16 @@ namespace XillioAPIService
             LogService.Log("this is the list of configurations: " + InfoHolder.Configurations.Count);
             ConfigurationRefreshDelay.Enabled = true;
         }
+
+        private void RefreshRepository(BaseConfiguration configuration)
+        {
+            // time to scrape.
+            configuration.RefreshDelay.Enabled = false;
+
+            configuration.RefreshDelay.Enabled = true;
+        }
         
-        private void RunAuthentication(object sender, System.Timers.ElapsedEventArgs e)
+        private void RunAuthentication()
         {
             LogService.Log("authenticating");
             InfoHolder.auth = api.Authenticate("user", "password", "client", "secret");
