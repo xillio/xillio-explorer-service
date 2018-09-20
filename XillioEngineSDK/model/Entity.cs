@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using XillioEngineSDK.model.decorators;
 
 namespace XillioEngineSDK.model
 {
@@ -6,10 +8,10 @@ namespace XillioEngineSDK.model
     {
         public string Id { get; set; }
         public string Kind { get; set; }
-        public XDIP Xdip { get; set; }
+        public string Xdip { get; set; }
         
-        public List<object> Original { get; set; }
-        public List<object> Modified { get; set; }
+        public List<Decorator> Original { get; set; }
+        public List<Decorator> Modified { get; set; }
 
         public Entity()
         {

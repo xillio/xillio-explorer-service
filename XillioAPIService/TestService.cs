@@ -2,9 +2,7 @@ using System.IO;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
-using XillioAPIService.Model;
+using XillioEngineSDK;
 
 namespace XillioAPIService
 {
@@ -27,7 +25,7 @@ namespace XillioAPIService
         }
         
         int count;
-        XillioEngineAPI api;
+        private XillioApi api;
         private UpdateService update;
         private PingService ping;
 
@@ -62,7 +60,7 @@ namespace XillioAPIService
 
             fileSystemWatcher1.EnableRaisingEvents = true;
 
-            api = new XillioEngineAPI("http://tenant.localhost:8080/");
+            api = new XillioApi("http://tenant.localhost:8080/");
             update = new UpdateService();
             ping = new PingService(api);
 
