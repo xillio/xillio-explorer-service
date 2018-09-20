@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl;
@@ -16,37 +17,41 @@ namespace XillioAPIService
 {
     public class XillioEngineAPI
     {
-        private const string BASE_URL = "http://tenant.localhost:8080";
-        private HttpClient client = new HttpClient();
+        private string baseUrl;
         private string token;
         
-        public XillioEngineAPI()
+        public XillioEngineAPI(string baseUrl)
         {
-            client.BaseAddress = new Uri(BASE_URL);
-        }
-
-        public XillioEngineAPI(Uri baseUrl)
-        {
-            client.BaseAddress = baseUrl;
+            this.baseUrl = baseUrl;
         }
 
         public AuthorizationResponse Authenticate(String username, String password, String clientId, String clientSecret)
         {
-            return BASE_URL
-                .AppendPathSegments("oauth", "token")
-                .WithHeader("Content-Type", "application/x-www-form-urlencoded")
-                .WithBasicAuth(clientId, clientSecret)
-                .PostJsonAsync(new
-                {
-                    grant_type = "password",
-                    username = username,
-                    password = password
-                }).ReceiveJson<AuthorizationResponse>().Result;
+            try
+            {
+                return this.baseUrl
+                    .AppendPathSegments("oauth", "token")
+                    .WithHeader("Content-Type", "application/x-www-form-urlencoded")
+                    .WithBasicAuth(clientId, clientSecret)
+                    .PostAsync(new FormUrlEncodedContent(new Dictionary<string ,string>()
+                        {
+                            {"grant_type", "password"},
+                            {"username", username},
+                            {"password", password}
+                        }))
+                    .ReceiveJson<AuthorizationResponse>().Result;
+            }
+            catch (FlurlHttpException exception)
+            {
+                throw new AuthenticationException();
+            }
+
+            return null;
         }
 
         public List<BaseConfiguration> GetConfigurations()
         {
-            return BASE_URL
+            return this.baseUrl
                 .AppendPathSegments("v2", "configurations")
                 .WithOAuthBearerToken(token)
                 .GetJsonAsync<List<BaseConfiguration>>().Result;
@@ -54,7 +59,7 @@ namespace XillioAPIService
 
         public JObject GetEntity(string configuration, string id)
         {
-            return BASE_URL
+            return this.baseUrl
                 .AppendPathSegment($"v2/{configuration}/entities/{id}")
                 .SetQueryParams(new {scope = "entity"})
                 .WithOAuthBearerToken(token)
