@@ -15,11 +15,6 @@ namespace XillioAPIService
         /// </summary>
         static void Main()
         {
-            var api = new XillioApi("http://tenant.localhost:8080/");
-            var auth = api.Authenticate("user", "password", "client", "secret");
-            var configs = api.GetConfigurations(auth);
-            var children = api.GetChildren(auth, configs[0], "");
-            
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {

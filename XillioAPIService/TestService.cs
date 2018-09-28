@@ -60,7 +60,7 @@ namespace XillioAPIService
 
             fileSystemWatcher1.EnableRaisingEvents = true;
 
-            api = new XillioApi("http://tenant.localhost:8080/");
+            api = new XillioApi("http://tenant.localhost:8080/", true);
             update = new UpdateService();
             ping = new PingService(api);
 
