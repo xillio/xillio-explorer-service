@@ -102,7 +102,7 @@ namespace XillioAPIService
             {
                 level++;
                 children = IndexChildren(children);
-                LogService.Log("ammount of 1st level objects is " + children.Count);
+                LogService.Log($"Level {level} has {children.Count} entities.");
             }
 
             configurationInfo.Item2.Enabled = true;
