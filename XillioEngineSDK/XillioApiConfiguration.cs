@@ -9,59 +9,59 @@ namespace XillioEngineSDK
 {
     public partial class XillioApi
     {
-        public List<Configuration> GetConfigurations(AuthenticationInfo authenticationInfo)
+        public List<Configuration> GetConfigurations()
         {
             return this.baseUrl
                 .AppendPathSegments("v2", "configurations")
-                .WithOAuthBearerToken(authenticationInfo.AccessToken)
+                .WithOAuthBearerToken(authentication.GetToken())
                 .GetJsonAsync<List<Configuration>>()
                 .Result;
         }
-        
-        public Configuration GetConfiguration(AuthenticationInfo authenticationInfo, string id)
+
+        public Configuration GetConfiguration(string id)
         {
             return this.baseUrl
                 .AppendPathSegments("v2", "configurations", id)
-                .WithOAuthBearerToken(authenticationInfo.AccessToken)
+                .WithOAuthBearerToken(authentication.GetToken())
                 .GetJsonAsync<Configuration>()
                 .Result;
         }
 
-        public Configuration CreateConfiguration(AuthenticationInfo authenticationInfo, Configuration configuration)
+        public Configuration CreateConfiguration(Configuration configuration)
         {
             return this.baseUrl
                 .AppendPathSegments("v2", "configurations")
-                .WithOAuthBearerToken(authenticationInfo.AccessToken)
+                .WithOAuthBearerToken(authentication.GetToken())
                 .PostJsonAsync(configuration)
                 .ReceiveJson<Configuration>()
                 .Result;
         }
 
-        public Configuration UpdateConfiguration(AuthenticationInfo authenticationInfo, Configuration configuration)
+        public Configuration UpdateConfiguration(Configuration configuration)
         {
-            return this.UpdateConfiguration(authenticationInfo, configuration.Id, configuration);
+            return this.UpdateConfiguration(configuration.Id, configuration);
         }
-        
-        public Configuration UpdateConfiguration(AuthenticationInfo authenticationInfo, string configurationId, Configuration configuration)
+
+        public Configuration UpdateConfiguration(string configurationId, Configuration configuration)
         {
             return this.baseUrl
                 .AppendPathSegments("v2", "configurations", configurationId)
-                .WithOAuthBearerToken(authenticationInfo.AccessToken)
+                .WithOAuthBearerToken(authentication.GetToken())
                 .PutJsonAsync(configuration)
                 .ReceiveJson<Configuration>()
                 .Result;
         }
 
-        public void DeleteConfiguration(AuthenticationInfo authenticationInfo, Configuration configuration)
+        public void DeleteConfiguration(Configuration configuration)
         {
-            this.DeleteConfiguration(authenticationInfo, configuration.Id);
+            this.DeleteConfiguration(configuration.Id);
         }
 
-        public void DeleteConfiguration(AuthenticationInfo authenticationInfo, string configurationId)
+        public void DeleteConfiguration(string configurationId)
         {
             this.baseUrl
                 .AppendPathSegments("v2", "configurations", configurationId)
-                .WithOAuthBearerToken(authenticationInfo.AccessToken)
+                .WithOAuthBearerToken(authentication.GetToken())
                 .DeleteAsync();
         }
     }

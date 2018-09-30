@@ -116,7 +116,7 @@ namespace XillioEngineSDK
             return UpdateEntity(configuration, entity.Id, entity);
         }
 
-        public Entity UpdateEntity(Configuration configuration, string id,
+        public Entity UpdateEntity(Configuration configuration, string path,
             Entity entity)
         {
             throw new NotImplementedException();
@@ -127,7 +127,7 @@ namespace XillioEngineSDK
             DeleteEntity(configuration, entity.Id);
         }
 
-        public void DeleteEntity(Configuration configuration, string id)
+        public void DeleteEntity(Configuration configuration, string path)
         {
             throw new NotImplementedException();
         }
