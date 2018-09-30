@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Management.Instrumentation;
-using System.Runtime.Remoting.Messaging;
+using System.Runtime.InteropServices.ComTypes;
 using System.Timers;
 using XillioEngineSDK;
 using XillioEngineSDK.model;
@@ -11,36 +10,46 @@ using XillioEngineSDK.model.decorators;
 
 namespace XillioAPIService
 {
-    public class PingService
+    public class PingService : IService
     {
-        Timer ConfigurationRefreshDelay = new System.Timers.Timer(60000);
-        Timer AuthenticationRefreshDelay = new System.Timers.Timer();
-        private XillioApi api;
+        Timer ConfigurationRefreshDelay = new Timer(60000);
+        public XillioApi api { get; set; }
 
-        public PingService(XillioApi api)
+        public void Start()
         {
-            this.api = api;
             ConfigurationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args)
             {
                 RefreshConfigurations();
             };
-            AuthenticationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args)
-            {
-                RunAuthentication();
-            };
+            ConfigurationRefreshDelay.Enabled = true;
+            RefreshConfigurations();
         }
 
-        public void Start()
+        public void Pause()
+        {
+            ConfigurationRefreshDelay.Enabled = false;
+            foreach (var configurationsValue in InfoHolder.Configurations.Values)
+            {
+                configurationsValue.Item2.Enabled = false;
+            }
+        }
+
+        public void Resume()
         {
             ConfigurationRefreshDelay.Enabled = true;
-            RunAuthentication();
-            AuthenticationRefreshDelay.Enabled = true;
-            RefreshConfigurations();
+            foreach (var configurationsValue in InfoHolder.Configurations.Values)
+            {
+                configurationsValue.Item2.Enabled = true;
+            }
         }
 
         public void Stop()
         {
-            ConfigurationRefreshDelay.Enabled = false;
+            ConfigurationRefreshDelay.Dispose();
+            foreach (var configurationsValue in InfoHolder.Configurations.Values)
+            {
+                configurationsValue.Item2.Dispose();
+            }
         }
 
         /// <summary>
@@ -52,30 +61,25 @@ namespace XillioAPIService
             ConfigurationRefreshDelay.Enabled = false;
             LogService.Log("Going to do a pull from Xillio API");
 
-            List<Configuration> configurations = api.GetConfigurations(InfoHolder.auth);
+            List<Configuration> configurations = api.GetConfigurations();
 
             List<Configuration> newConfigs =
-                configurations.Where(c => !(InfoHolder.Configurations.Select(t => t.Item1).Contains(c))).ToList();
+                configurations.Where(c => !(InfoHolder.Configurations.ContainsKey(c.Name))).ToList();
 
-            InfoHolder.Configurations.AddRange(configurations
-                .Where(c => !(InfoHolder.Configurations.Select(t => t.Item1).Contains(c)))
-                .Select(c =>
-                {
-                    Timer timer = new Timer(2000);
-                    var tuple = Tuple.Create(c, timer);
-                    timer.Elapsed += delegate(object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
-                    timer.Enabled = true;
-                    return tuple;
-                }).ToList());
 
             foreach (Configuration configuration in newConfigs)
             {
                 LogService.Log("found a new config: " + configuration.Name);
+
+                Timer timer = new Timer(2000);
+                var tuple = Tuple.Create(configuration, timer);
+
+                InfoHolder.Configurations.Add(configuration.Name, tuple);
+                timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
+                RefreshRepository(tuple);
+
                 string path = InfoHolder.syncFolder + "/" + configuration.Name;
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
+                Directory.CreateDirectory(path);
             }
 
             ConfigurationRefreshDelay.Enabled = true;
@@ -86,15 +90,15 @@ namespace XillioAPIService
             // time to scrape.
             configurationInfo.Item2.Enabled = false;
             LogService.Log("starting to scrape for " + configurationInfo.Item1.Name);
-            
+
             List<Tuple<Entity, string>> children = api.GetChildren(configurationInfo.Item1)
-                .Select(c => 
-                    Tuple.Create(c, InfoHolder.syncFolder + "/" + configurationInfo.Item1.Name + 
-                                    ((NameDecorator)c.Original.Find(d => d is NameDecorator)).SystemName + "/")
-                    )
+                .Select(c =>
+                    Tuple.Create(c, InfoHolder.syncFolder + "/" + configurationInfo.Item1.Name +
+                                    ((NameDecorator) c.Original.Find(d => d is NameDecorator)).SystemName + "/")
+                )
                 .ToList();
-            
-            
+
+
             LogService.Log("Level 0 has " + children.Count + " entities.");
             int level = 0;
 
@@ -131,19 +135,13 @@ namespace XillioAPIService
                 else if (!File.Exists(path))
                 {
                     File.Create(path);
+                    File.SetAttributes(path, FileAttributes.Offline);
                 }
 
                 children.Remove(child);
             }
 
             return children;
-        }
-
-        private void RunAuthentication()
-        {
-            LogService.Log("authenticating");
-            InfoHolder.auth = api.Authenticate("user", "password", "client", "secret");
-            AuthenticationRefreshDelay.Interval = InfoHolder.auth.ExpiresIn;
         }
     }
 }

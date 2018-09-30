@@ -24,51 +24,72 @@ namespace XillioAPIService
             SERVICE_PAUSED = 0x00000007,
         }
         
-        int count;
         private XillioApi api;
-        private UpdateService update;
-        private PingService ping;
+        private WatcherService watcher = new WatcherService();
+        private PingService ping = new PingService();
+        ServiceStatus serviceStatus;
 
         public TestService()
         {
             const string syncFolder = "C:\\Users\\Dwight.Peters\\Documents\\XillioProjects";
             InitializeComponent();
-            fileSystemWatcher1.Path = syncFolder;
-            fileSystemWatcher1.Changed += new FileSystemEventHandler(OnChange);
-            
-        }
-
-        /// <summary>
-        /// Called when a file or folder in the watched folder is changed.
-        /// </summary>
-        /// <param name="sender">the object that send the event</param>
-        /// <param name="e">the event</param>
-        private void OnChange(object sender, FileSystemEventArgs e)
-        {
-            update.HandleFileChanges(sender, e);
         }
 
         protected override void OnStart(string[] args)
         {
             // Update the service state to Start Pending.  
-            ServiceStatus serviceStatus = new ServiceStatus();
+            
             serviceStatus.dwCurrentState = ServiceState.SERVICE_START_PENDING;
             serviceStatus.dwWaitHint = 100000;
-            SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
             
             LogService.Log("starting up the service.");
 
-            fileSystemWatcher1.EnableRaisingEvents = true;
-
             api = new XillioApi("http://tenant.localhost:8080/", true);
-            update = new UpdateService();
-            ping = new PingService(api);
-
+            RunAuthentication();
+            
+            //Setup other services
+            watcher.api = api;
+            watcher.Start();
+            ping.api = api;
             ping.Start();
+            
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
             LogService.Log("service started.");
+        }
+
+        protected override void OnPause()
+        {
+            // Update service status
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_PAUSE_PENDING;
+            serviceStatus.dwWaitHint = 100000;
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
+       
+            // pause other services
+            watcher.Pause();
+            ping.Pause();
+            
+            // Update service status
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_PAUSED;
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
+        }
+
+        protected override void OnContinue()
+        {
+            // Update service status
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_CONTINUE_PENDING;
+            serviceStatus.dwWaitHint = 100000;
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
+       
+            // pause other services
+            watcher.Resume();
+            ping.Resume();
+            
+            // Update service status
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
         }
 
         protected override void OnStop()
@@ -80,14 +101,19 @@ namespace XillioAPIService
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
             
             ping.Stop();
-
-            fileSystemWatcher1.EnableRaisingEvents = false;
+            watcher.Stop();
 
             LogService.Clear();
 
             // Update the service state to Stopped.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_STOPPED;
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
+        }
+        
+        private void RunAuthentication()
+        {
+            LogService.Log("authenticating");
+            api.Authenticate("user", "password", "client", "secret");
         }
 
         [DllImport("advapi32.dll", SetLastError = true)]

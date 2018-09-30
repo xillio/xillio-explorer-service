@@ -28,24 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
-            this.directoryEntry1 = new System.DirectoryServices.DirectoryEntry();
-            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
-            // 
-            // fileSystemWatcher1
-            // 
-            this.fileSystemWatcher1.EnableRaisingEvents = true;
-            this.fileSystemWatcher1.Changed += new System.IO.FileSystemEventHandler(this.OnChange);
             // 
             // TestService
             // 
             this.ServiceName = "Service1";
-            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).EndInit();
-
         }
 
         #endregion
-        private System.IO.FileSystemWatcher fileSystemWatcher1;
-        private System.DirectoryServices.DirectoryEntry directoryEntry1;
     }
 }
