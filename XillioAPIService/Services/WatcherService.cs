@@ -58,6 +58,7 @@ namespace XillioAPIService
 
         private void HandleRename(object sender, RenamedEventArgs args)
         {
+            throw new NotImplementedException();
         }
 
         private void HandleDelete(object sender, FileSystemEventArgs args)
@@ -67,6 +68,7 @@ namespace XillioAPIService
 
         private void HandleChange(object sender, FileSystemEventArgs args)
         {
+            throw new NotImplementedException();
         }
 
         private Configuration GetConfiguration(string path)
