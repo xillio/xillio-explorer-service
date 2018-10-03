@@ -10,8 +10,8 @@ namespace XillioEngineSDK.model
         public string Kind { get; set; }
         public string Xdip { get; set; }
         
-        public List<Decorator> Original { get; set; }
-        public List<Decorator> Modified { get; set; }
+        public DecoratorList Original { get; set; }
+        public DecoratorList Modified { get; set; }
 
         public Entity()
         {

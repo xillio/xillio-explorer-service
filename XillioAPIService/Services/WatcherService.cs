@@ -14,6 +14,7 @@ namespace XillioAPIService
 
         public void Start()
         {
+            LogService.Log("starting WatcherService");
             watcher = new FileSystemWatcher();
             ((System.ComponentModel.ISupportInitialize) (watcher)).BeginInit();
 
@@ -25,6 +26,7 @@ namespace XillioAPIService
 
             watcher.EnableRaisingEvents = true;
             ((System.ComponentModel.ISupportInitialize) (watcher)).EndInit();
+            LogService.Log("Watcher started up.");
         }
 
         public void Pause()
@@ -49,11 +51,14 @@ namespace XillioAPIService
 
 
             Entity entity = new Entity();
-            entity.Original.Add(new NameDecorator(args.Name));
-            entity.Original.Add(new ContainerDecorator(Directory.Exists(args.FullPath)));
+            entity.Original.NameDecorator = new NameDecorator(args.Name);
+            //TODO fix this
+            entity.Original.ContainerDecorator = new ContainerDecorator(Directory.Exists(args.FullPath));
 
             using (FileStream stream = File.OpenRead(args.FullPath))
-                api.CreateEntity(entity, GetConfiguration(args.FullPath), stream);
+            {
+                //api.CreateEntity(entity, GetConfiguration(args.FullPath), stream);
+            }
         }
 
         private void HandleRename(object sender, RenamedEventArgs args)

@@ -18,6 +18,11 @@ namespace XillioEngineSDK
         {
             return GetEntity(reference.Id);
         }
+        
+        public Entity GetEntity(Entity entity)
+        {
+            return GetEntity(entity.Id);
+        }
 
         public Entity GetEntity(Configuration configuration, string path)
         {

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Timers;
+using DSOFile;
 using XillioEngineSDK;
 using XillioEngineSDK.model;
 using XillioEngineSDK.model.decorators;
@@ -75,11 +76,12 @@ namespace XillioAPIService
                 var tuple = Tuple.Create(configuration, timer);
 
                 InfoHolder.Configurations.Add(configuration.Name, tuple);
-                timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
-                RefreshRepository(tuple);
-
+                
                 string path = InfoHolder.syncFolder + "/" + configuration.Name;
                 Directory.CreateDirectory(path);
+                
+                timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
+                RefreshRepository(tuple);
             }
 
             ConfigurationRefreshDelay.Enabled = true;
@@ -93,8 +95,7 @@ namespace XillioAPIService
 
             List<Tuple<Entity, string>> children = api.GetChildren(configurationInfo.Item1)
                 .Select(c =>
-                    Tuple.Create(c, InfoHolder.syncFolder + "/" + configurationInfo.Item1.Name +
-                                    ((NameDecorator) c.Original.Find(d => d is NameDecorator)).SystemName + "/")
+                    Tuple.Create(c, InfoHolder.syncFolder + "/" + configurationInfo.Item1.Name + "/")
                 )
                 .ToList();
 
@@ -104,8 +105,8 @@ namespace XillioAPIService
 
             while (children.Count > 0)
             {
-                level++;
                 children = IndexChildren(children);
+                level++;
                 LogService.Log($"Level {level} has {children.Count} entities.");
             }
 
@@ -116,9 +117,8 @@ namespace XillioAPIService
         {
             foreach (Tuple<Entity, string> child in children)
             {
-                string path = child.Item2 +
-                              ((NameDecorator) child.Item1.Original.Find(d => d is NameDecorator)).SystemName;
-                if (((ContainerDecorator) child.Item1.Original.Find(d => d is ContainerDecorator)).HasChildren)
+                string path = child.Item2 + child.Item1.Original.NameDecorator.SystemName;
+                if (child.Item1.Original.ContainerDecorator != null)
                 {
                     if (!Directory.Exists(path))
                     {
@@ -128,7 +128,7 @@ namespace XillioAPIService
                     children.AddRange(
                         api.GetChildren(child.Item1).Select(c =>
                             Tuple.Create(c,
-                                child.Item2 + ((NameDecorator) c.Original.Find(d => d is NameDecorator)).SystemName +
+                                child.Item2 + c.Original.NameDecorator.SystemName +
                                 "/")
                         ));
                 }
@@ -143,5 +143,8 @@ namespace XillioAPIService
 
             return children;
         }
+
+        
+        
     }
 }

@@ -31,7 +31,6 @@ namespace XillioAPIService
 
         public TestService()
         {
-            const string syncFolder = "C:\\Users\\Dwight.Peters\\Documents\\XillioProjects";
             InitializeComponent();
         }
 
@@ -114,6 +113,7 @@ namespace XillioAPIService
         {
             LogService.Log("authenticating");
             api.Authenticate("user", "password", "client", "secret");
+            LogService.Log("Authentication Complete");
         }
 
         [DllImport("advapi32.dll", SetLastError = true)]
