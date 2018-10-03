@@ -1,6 +1,6 @@
 namespace XillioEngineSDK.model.decorators
 {
-    public class NameDecorator : Decorator
+    public class NameDecorator
     {
         public string SystemName { get; set; }
         public string DisplayName { get; set; }

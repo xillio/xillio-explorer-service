@@ -1,6 +1,6 @@
 namespace XillioEngineSDK.model.decorators
 {
-    public class ContainerDecorator : Decorator
+    public class ContainerDecorator
     {
         public bool HasChildren { get; set; }
 
