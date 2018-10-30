@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Timers;
-using DSOFile;
 using XillioEngineSDK;
 using XillioEngineSDK.model;
-using XillioEngineSDK.model.decorators;
 
 namespace XillioAPIService
 {
@@ -76,10 +73,10 @@ namespace XillioAPIService
                 var tuple = Tuple.Create(configuration, timer);
 
                 InfoHolder.Configurations.Add(configuration.Name, tuple);
-                
+
                 string path = InfoHolder.syncFolder + "/" + configuration.Name;
                 Directory.CreateDirectory(path);
-                
+
                 timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
                 RefreshRepository(tuple);
             }
@@ -95,7 +92,7 @@ namespace XillioAPIService
 
             List<Tuple<Entity, string>> children = api.GetChildren(configurationInfo.Item1)
                 .Select(c =>
-                    Tuple.Create(c, InfoHolder.syncFolder + "/" + configurationInfo.Item1.Name + "/")
+                    Tuple.Create(c, Path.Combine(InfoHolder.syncFolder, configurationInfo.Item1.Name))
                 )
                 .ToList();
 
@@ -115,36 +112,23 @@ namespace XillioAPIService
 
         private List<Tuple<Entity, string>> IndexChildren(List<Tuple<Entity, string>> children)
         {
+            var newChildren = new List<Tuple<Entity, string>>();
             foreach (Tuple<Entity, string> child in children)
             {
-                string path = child.Item2 + child.Item1.Original.NameDecorator.SystemName;
+                string path = Path.Combine(child.Item2, child.Item1.Original.NameDecorator.SystemName);
+                LogService.Log($"Checking childEntity {child.Item1.Original.ContainerDecorator}");
                 if (child.Item1.Original.ContainerDecorator != null)
                 {
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-
-                    children.AddRange(
+                    newChildren.AddRange(
                         api.GetChildren(child.Item1).Select(c =>
-                            Tuple.Create(c,
-                                child.Item2 + c.Original.NameDecorator.SystemName +
-                                "/")
+                            Tuple.Create(c, path)
                         ));
                 }
-                else if (!File.Exists(path))
-                {
-                    File.Create(path);
-                    File.SetAttributes(path, FileAttributes.Offline);
-                }
 
-                children.Remove(child);
+                FileReaderWriter.CreateFile(path, child.Item1);
             }
 
-            return children;
+            return newChildren;
         }
-
-        
-        
     }
 }

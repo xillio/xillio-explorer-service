@@ -109,6 +109,8 @@ namespace XillioAPIService
             SetServiceStatus(this.ServiceHandle, ref serviceStatus);
         }
         
+        
+        
         private void RunAuthentication()
         {
             LogService.Log("authenticating");

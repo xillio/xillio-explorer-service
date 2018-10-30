@@ -1,10 +1,10 @@
 namespace XillioEngineSDK.model.decorators
 {
-    public class FileDecorator
+    public class FileDecorator : Decorator
     {
-        public string extension { get; set; }
-        public string rawExtension { get; set; }
-        public long size {get; set;} 
+        public string Extension { get; set; }
+        public string RawExtension { get; set; }
+        public long Size {get; set;} 
 
         public FileDecorator()
         {
@@ -15,7 +15,7 @@ namespace XillioEngineSDK.model.decorators
             Extension = extension;
         }
 
-        public FileDecorator(string extension, string rawextension, long size)
+        public FileDecorator(string extension, string rawExtension, long size)
         {
             Extension = extension;
             RawExtension = rawExtension;

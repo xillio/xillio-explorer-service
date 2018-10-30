@@ -51,7 +51,7 @@ namespace XillioAPIService
 
 
             Entity entity = new Entity();
-            entity.Original.NameDecorator = new NameDecorator(args.Name);
+            //entity.Original.NameDecorator = new NameDecorator(args.Name);
             //TODO fix this
             entity.Original.ContainerDecorator = new ContainerDecorator(Directory.Exists(args.FullPath));
 
