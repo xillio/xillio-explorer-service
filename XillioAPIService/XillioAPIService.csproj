@@ -70,11 +70,11 @@
     <Compile Include="Services\DownloadService.cs" />
     <Compile Include="Services\PingService.cs" />
     <Compile Include="Services\IService.cs" />
-    <Compile Include="Services\TestService.cs">
+    <Compile Include="Services\XillioWindowsService.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Services\TestService.Designer.cs">
-      <DependentUpon>TestService.cs</DependentUpon>
+      <DependentUpon>XillioWindowsService.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\WatcherService.cs" />
     <Compile Include="Program.cs" />
@@ -92,7 +92,7 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Services\TestService.resx">
-      <DependentUpon>TestService.cs</DependentUpon>
+      <DependentUpon>XillioWindowsService.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -100,17 +100,6 @@
       <Project>{b3799977-a728-4f6e-af5b-77140f4826b3}</Project>
       <Name>XillioEngineSDK</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="DSOFile">
-      <Guid>{58968145-CF00-4341-995F-2EE093F6ABA3}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>1</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>tlbimp</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -10,7 +10,7 @@ namespace XillioAPIService
 {
     public class PingService : IService
     {
-        Timer ConfigurationRefreshDelay = new Timer(60000);
+        Timer ConfigurationRefreshDelay = new Timer(600000);
         public XillioApi api { get; set; }
 
         public void Start()
@@ -69,7 +69,7 @@ namespace XillioAPIService
             {
                 LogService.Log("found a new config: " + configuration.Name);
 
-                Timer timer = new Timer(2000);
+                Timer timer = new Timer(180000);
                 var tuple = Tuple.Create(configuration, timer);
 
                 InfoHolder.Configurations.Add(configuration.Name, tuple);
@@ -89,16 +89,17 @@ namespace XillioAPIService
             // time to scrape.
             configurationInfo.Item2.Enabled = false;
             LogService.Log("starting to scrape for " + configurationInfo.Item1.Name);
+            string path = Path.Combine(InfoHolder.syncFolder, configurationInfo.Item1.Name);
 
             List<Tuple<Entity, string>> children = api.GetChildren(configurationInfo.Item1)
-                .Select(c =>
-                    Tuple.Create(c, Path.Combine(InfoHolder.syncFolder, configurationInfo.Item1.Name))
-                )
+                .Select(c => Tuple.Create(c, path))
                 .ToList();
 
 
             LogService.Log("Level 0 has " + children.Count + " entities.");
             int level = 0;
+            
+            DeleteUnavailableChildren(path, children);
 
             while (children.Count > 0)
             {
@@ -110,25 +111,78 @@ namespace XillioAPIService
             configurationInfo.Item2.Enabled = true;
         }
 
+        /// <summary>
+        /// Indexes the children of an entity and creates files for them.
+        /// </summary>
+        /// <param name="children"></param>
+        /// <returns></returns>
         private List<Tuple<Entity, string>> IndexChildren(List<Tuple<Entity, string>> children)
         {
             var newChildren = new List<Tuple<Entity, string>>();
             foreach (Tuple<Entity, string> child in children)
             {
-                string path = Path.Combine(child.Item2, child.Item1.Original.NameDecorator.SystemName);
-                LogService.Log($"Checking childEntity {child.Item1.Original.ContainerDecorator}");
-                if (child.Item1.Original.ContainerDecorator != null)
-                {
-                    newChildren.AddRange(
-                        api.GetChildren(child.Item1).Select(c =>
-                            Tuple.Create(c, path)
-                        ));
-                }
+                IndexChild(child, newChildren);
+            }
+            return newChildren;
+        }
 
-                FileReaderWriter.CreateFile(path, child.Item1);
+        private void IndexChild(Tuple<Entity, string> child, List<Tuple<Entity, string>> newChildren)
+        {
+            string childName = child.Item1.Original.NameDecorator.SystemName;
+            string path = Path.Combine(child.Item2, childName);
+            if (child.Item1.Original.ContainerDecorator != null)
+            {
+                var childChildren = api.GetChildren(child.Item1).Select(c =>
+                    Tuple.Create(c, path)
+                );
+                var childChildrenList = childChildren.ToList();
+                newChildren.AddRange(childChildrenList);
+
+                DeleteUnavailableChildren(path, childChildrenList);
             }
 
-            return newChildren;
+            FileReaderWriter.CreateFile(path, child.Item1);
+        }
+
+        private void DeleteUnavailableChildren(string path, List<Tuple<Entity, string>> childChildren)
+        {
+            if (!Directory.Exists(path))
+            {
+                return;
+            }
+            var files = Directory.GetFiles(path);
+            files = files.Except(Directory.GetFiles(path, "*.properties")).ToArray();
+
+            files = files.Union(Directory.GetDirectories(path)).ToArray();
+            
+            //LogService.Log($"Found {files.Length} files and pulled {childChildren.Count()} for {path}");
+            if (files.Length < childChildren.Count()) return;
+            foreach (var file in files)
+            {
+                if (ExtractChildNames(childChildren).Contains(Path.GetFileName(file))) continue;
+                LogService.Log($"Removing {file}");
+                FileAttributes attr = File.GetAttributes(file);
+                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                {
+                    Directory.Delete(file, true);
+                }
+                else
+                {
+                    File.Delete(file);
+                }
+            }
+        }
+
+
+        private List<string> ExtractChildNames(IEnumerable<Tuple<Entity, string>> children)
+        {
+            List<string> childNames = new List<string>();
+            foreach (var child in children)
+            {
+                childNames.Add(child.Item1.Original.NameDecorator.SystemName);
+            }
+
+            return childNames;
         }
     }
 }

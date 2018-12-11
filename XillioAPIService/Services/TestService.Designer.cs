@@ -1,6 +1,6 @@
 ﻿namespace XillioAPIService
 {
-    partial class TestService
+    partial class XillioWindowsService
     {
         /// <summary> 
         /// Required designer variable.

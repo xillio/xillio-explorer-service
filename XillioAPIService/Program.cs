@@ -15,12 +15,20 @@ namespace XillioAPIService
         /// </summary>
         static void Main()
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
+            try
             {
-                new TestService()
-            };
-            ServiceBase.Run(ServicesToRun);
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[]
+                {
+                    new XillioWindowsService()
+                };
+                ServiceBase.Run(ServicesToRun);
+            }
+            catch (Exception e)
+            {
+                LogService.Log(e);
+                throw;
+            }
         }
     }
 }
