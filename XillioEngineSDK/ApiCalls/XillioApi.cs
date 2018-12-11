@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using Flurl;
 using Flurl.Http;
-using XillioEngineSDK.model;
 using XillioEngineSDK.responses;
 using Version = XillioEngineSDK.responses.Version;
 

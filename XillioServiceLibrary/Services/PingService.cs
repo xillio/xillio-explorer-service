@@ -10,22 +10,29 @@ namespace XillioAPIService
 {
     public class PingService : IService
     {
-        Timer ConfigurationRefreshDelay = new Timer(600000);
-        public XillioApi api { get; set; }
+        private readonly Timer configurationRefreshDelay;
+        public XillioApi api;
+
+        public PingService(XillioApi api)
+        {
+            this.api = api;
+            configurationRefreshDelay = new Timer(600000);
+            Start();
+        }
 
         public void Start()
         {
-            ConfigurationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args)
+            configurationRefreshDelay.Elapsed += delegate(object sender, ElapsedEventArgs args)
             {
                 RefreshConfigurations();
             };
-            ConfigurationRefreshDelay.Enabled = true;
+            configurationRefreshDelay.Enabled = true;
             RefreshConfigurations();
         }
 
         public void Pause()
         {
-            ConfigurationRefreshDelay.Enabled = false;
+            configurationRefreshDelay.Enabled = false;
             foreach (var configurationsValue in InfoHolder.Configurations.Values)
             {
                 configurationsValue.Item2.Enabled = false;
@@ -34,7 +41,7 @@ namespace XillioAPIService
 
         public void Resume()
         {
-            ConfigurationRefreshDelay.Enabled = true;
+            configurationRefreshDelay.Enabled = true;
             foreach (var configurationsValue in InfoHolder.Configurations.Values)
             {
                 configurationsValue.Item2.Enabled = true;
@@ -43,7 +50,7 @@ namespace XillioAPIService
 
         public void Stop()
         {
-            ConfigurationRefreshDelay.Dispose();
+            configurationRefreshDelay.Dispose();
             foreach (var configurationsValue in InfoHolder.Configurations.Values)
             {
                 configurationsValue.Item2.Dispose();
@@ -56,7 +63,7 @@ namespace XillioAPIService
         private void RefreshConfigurations()
         {
             // time to do a pull.
-            ConfigurationRefreshDelay.Enabled = false;
+            configurationRefreshDelay.Enabled = false;
             LogService.Log("Going to do a pull from Xillio API");
 
             List<Configuration> configurations = api.GetConfigurations();
@@ -81,7 +88,7 @@ namespace XillioAPIService
                 RefreshRepository(tuple);
             }
 
-            ConfigurationRefreshDelay.Enabled = true;
+            configurationRefreshDelay.Enabled = true;
         }
 
         private void RefreshRepository(Tuple<Configuration, Timer> configurationInfo)

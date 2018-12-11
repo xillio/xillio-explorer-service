@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
-using XillioEngineSDK;
+using XillioServiceLibrary;
 
 namespace XillioAPIService
 {
@@ -17,18 +13,23 @@ namespace XillioAPIService
         {
             try
             {
-                ServiceBase[] ServicesToRun;
-                ServicesToRun = new ServiceBase[]
-                {
-                    new XillioWindowsService()
-                };
-                ServiceBase.Run(ServicesToRun);
+                StartService();
             }
             catch (Exception e)
             {
                 LogService.Log(e);
                 throw;
             }
+        }
+
+        private static void StartService()
+        {
+            ServiceBase[] ServicesToRun;
+            ServicesToRun = new ServiceBase[]
+            {
+                new XillioWindowsService()
+            };
+            ServiceBase.Run(ServicesToRun);
         }
     }
 }

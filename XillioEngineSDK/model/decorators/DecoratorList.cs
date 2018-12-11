@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace XillioEngineSDK.model.decorators
 {

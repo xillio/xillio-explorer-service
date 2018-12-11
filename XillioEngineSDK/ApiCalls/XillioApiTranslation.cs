@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using Flurl;
-using Flurl.Http;
 using XillioEngineSDK.model;
-using XillioEngineSDK.responses;
 
 namespace XillioEngineSDK
 {

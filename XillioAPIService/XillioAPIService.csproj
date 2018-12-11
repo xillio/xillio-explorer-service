@@ -67,21 +67,14 @@
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\DownloadService.cs" />
-    <Compile Include="Services\PingService.cs" />
-    <Compile Include="Services\IService.cs" />
-    <Compile Include="Services\XillioWindowsService.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Services\TestService.Designer.cs">
-      <DependentUpon>XillioWindowsService.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Services\WatcherService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils\FileReaderWriter.cs" />
-    <Compile Include="Utils\InfoHolder.cs" />
-    <Compile Include="Utils\LogService.cs" />
+    <Compile Include="TestService.Designer.cs">
+      <DependentUpon>XillioWindowsService.cs</DependentUpon>
+    </Compile>
+    <Compile Include="XillioWindowsService.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -91,14 +84,14 @@
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Services\TestService.resx">
+    <EmbeddedResource Include="TestService.resx">
       <DependentUpon>XillioWindowsService.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\XillioEngineSDK\XillioEngineSDK.csproj">
-      <Project>{b3799977-a728-4f6e-af5b-77140f4826b3}</Project>
-      <Name>XillioEngineSDK</Name>
+    <ProjectReference Include="..\XillioServiceLibrary\XillioServiceLibrary.csproj">
+      <Project>{0a9897f1-9fd3-4bab-bb09-f907b1ee1635}</Project>
+      <Name>XillioServiceLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

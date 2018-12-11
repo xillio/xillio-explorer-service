@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Flurl;
 using Flurl.Http;
-using Flurl.Http.Content;
 using XillioEngineSDK.model;
-using XillioEngineSDK.responses;
 
 namespace XillioEngineSDK
 {
