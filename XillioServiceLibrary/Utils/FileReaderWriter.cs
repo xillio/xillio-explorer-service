@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Timers;
 using XillioEngineSDK.model;
 
@@ -9,6 +10,8 @@ namespace XillioAPIService
 {
     public static class FileReaderWriter
     {
+        private static List<char> INVALID_WINDOWS_PATH_CHARACTERS = new List<char>(){':', '?', '*', '"', '<', '>', '|', '/', '\\'};
+
         public static void CreateFile(string path, Entity entity)
         {
             if (File.Exists(path)) return;
@@ -20,6 +23,7 @@ namespace XillioAPIService
             {
                 if (!path.Contains(".")) path = path + "." + entity.Original.FileDecorator.Extension;
 
+                path = MakeNameCompliant(path);
                 try
                 {
                     //LogService.Log($"Doing the actual create of {path}");
@@ -48,7 +52,7 @@ namespace XillioAPIService
 
             //LogService.Log($"Now set the properties of the File at {path}");
 
-            WriteCustomProperty(path, "XDIP", entity.Xdip);
+            WriteEntityPropertyFile(path, entity);
             SetMultipleFileAttributes(path, attributes);
             //LogService.Log($"creating {path} is done.");
         }
@@ -105,6 +109,7 @@ namespace XillioAPIService
             }
         }
 
+        /*
         private static void WriteCustomProperty(string path, string propertyName, string propertyValue)
         {
             var propertiesPath = path + ".properties";
@@ -118,6 +123,31 @@ namespace XillioAPIService
                 }
 
             File.SetAttributes(propertiesPath, FileAttributes.Hidden | FileAttributes.NotContentIndexed);
+        }
+        */
+
+        private static void WriteEntityPropertyFile(string path, Entity entity)
+        {
+            var propertiesPath = path + ".properties";
+            var bFormatter = new BinaryFormatter();
+            using (var stream = File.Open(propertiesPath, FileMode.OpenOrCreate))
+            {
+                bFormatter.Serialize(stream, entity);
+            }
+
+            File.SetAttributes(propertiesPath, FileAttributes.Hidden | FileAttributes.NotContentIndexed);
+        }
+
+        private static string MakeNameCompliant(string path)
+        {
+            List<char> foundChars =
+                INVALID_WINDOWS_PATH_CHARACTERS.Where(c => Path.GetFileName(path).Contains(c)).ToList();
+            foreach (var character in foundChars)
+            {
+                path.Replace(character, '');
+            }
+
+            return path;
         }
     }
 }

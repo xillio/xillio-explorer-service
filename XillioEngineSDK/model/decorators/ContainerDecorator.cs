@@ -1,3 +1,5 @@
+using System.Runtime.Serialization;
+
 namespace XillioEngineSDK.model.decorators
 {
     public class ContainerDecorator : Decorator
@@ -11,6 +13,11 @@ namespace XillioEngineSDK.model.decorators
         public ContainerDecorator(bool hasChildren)
         {
             HasChildren = hasChildren;
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("hasChildren", HasChildren);
         }
     }
 }

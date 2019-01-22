@@ -1,8 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace XillioEngineSDK.model.decorators
 {
-    public class DecoratorList
+    public class DecoratorList : ISerializable
     {
         [JsonProperty("container")]
         public ContainerDecorator ContainerDecorator { get; set; }
@@ -12,5 +13,12 @@ namespace XillioEngineSDK.model.decorators
 
         [JsonProperty("file")]
         public FileDecorator FileDecorator { get; set; }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("container", ContainerDecorator);
+            info.AddValue("name", NameDecorator);
+            info.AddValue("file", FileDecorator);
+        }
     }
 }

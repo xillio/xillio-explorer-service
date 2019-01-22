@@ -1,6 +1,8 @@
-﻿namespace XillioEngineSDK.model.decorators
+﻿using System.Runtime.Serialization;
+
+namespace XillioEngineSDK.model.decorators
 {
-    public interface Decorator
+    public interface Decorator : ISerializable
     {
         
     }
