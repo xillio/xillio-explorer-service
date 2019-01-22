@@ -68,6 +68,8 @@ namespace XillioAPIService
             LogService.Log("Going to do a pull from Xillio API");
 
             List<Configuration> configurations = api.GetConfigurations();
+            
+            DeleteUnavailableConfigs(configurations);
 
             List<Configuration> newConfigs =
                 configurations.Where(c => !(InfoHolder.Configurations.ContainsKey(c.Name))).ToList();
@@ -175,6 +177,22 @@ namespace XillioAPIService
                 else
                 {
                     File.Delete(file);
+                }
+            }
+        }
+
+
+        private void DeleteUnavailableConfigs(List<Configuration> configurations)
+        {
+            String[] allConfigDirs = Directory.GetDirectories(InfoHolder.syncFolder);
+
+            List<string> configNames = configurations.Select(c => c.Name).ToList();
+
+            foreach (var configDir in allConfigDirs)
+            {
+                if (!configNames.Contains(Path.GetDirectoryName(configDir)))
+                {
+                    Directory.Delete(configDir, true);
                 }
             }
         }
