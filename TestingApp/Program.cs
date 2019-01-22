@@ -12,7 +12,9 @@ namespace TestingApp
             try
             {
                 XillioService service = new XillioService();
+                
                 service.Start();
+                Console.ReadLine();
             }
             catch (Exception e)
             {

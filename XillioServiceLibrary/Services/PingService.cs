@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using XillioEngineSDK;
 using XillioEngineSDK.model;
@@ -71,24 +72,25 @@ namespace XillioAPIService
             List<Configuration> newConfigs =
                 configurations.Where(c => !(InfoHolder.Configurations.ContainsKey(c.Name))).ToList();
 
-
-            foreach (Configuration configuration in newConfigs)
-            {
-                LogService.Log("found a new config: " + configuration.Name);
-
-                Timer timer = new Timer(180000);
-                var tuple = Tuple.Create(configuration, timer);
-
-                InfoHolder.Configurations.Add(configuration.Name, tuple);
-
-                string path = InfoHolder.syncFolder + "/" + configuration.Name;
-                Directory.CreateDirectory(path);
-
-                timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
-                RefreshRepository(tuple);
-            }
+            Parallel.ForEach(newConfigs, HandleRepo);
 
             configurationRefreshDelay.Enabled = true;
+        }
+
+        private void HandleRepo(Configuration configuration)
+        {
+            LogService.Log("found a new config: " + configuration.Name);
+
+            Timer timer = new Timer(180000);
+            var tuple = Tuple.Create(configuration, timer);
+
+            InfoHolder.Configurations.Add(configuration.Name, tuple);
+
+            string path = InfoHolder.syncFolder + "/" + configuration.Name;
+            Directory.CreateDirectory(path);
+
+            timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
+            RefreshRepository(tuple);
         }
 
         private void RefreshRepository(Tuple<Configuration, Timer> configurationInfo)
@@ -126,10 +128,7 @@ namespace XillioAPIService
         private List<Tuple<Entity, string>> IndexChildren(List<Tuple<Entity, string>> children)
         {
             var newChildren = new List<Tuple<Entity, string>>();
-            foreach (Tuple<Entity, string> child in children)
-            {
-                IndexChild(child, newChildren);
-            }
+            Parallel.ForEach(children, c => IndexChild(c, newChildren));
             return newChildren;
         }
 
