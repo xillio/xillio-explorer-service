@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using XillioEngineSDK.responses;
@@ -19,15 +20,13 @@ namespace XillioEngineSDK
         public XillioApi(string baseUrl, bool refreshToken)
         {
             this.baseUrl = baseUrl;
-
-            Ping();
-
             authentication = refreshToken ? new Authentication(this) : new Authentication();
+            Ping();
         }
 
         public AuthenticationInfo Authenticate(string username, string password, string clientId, string clientSecret)
         {
-            AuthenticationInfo info = baseUrl
+            AuthenticationInfo info = DoCall(baseUrl
                 .AppendPathSegments("oauth", "token")
                 .WithHeader("Content-Type", "application/x-www-form-urlencoded")
                 .WithBasicAuth(clientId, clientSecret)
@@ -38,7 +37,7 @@ namespace XillioEngineSDK
                     {"password", password}
                 }))
                 .ReceiveJson<AuthenticationInfo>()
-                .Result;
+            );
 
             return authentication.IsAutoRefresh()
                 ? authentication.RegisterAuthentication(username, password, clientId, clientSecret, info)
@@ -57,29 +56,40 @@ namespace XillioEngineSDK
         {
             try
             {
-                return this.baseUrl
+                return DoCall(baseUrl
                     .AppendPathSegments("v2", "system", "version")
-                    .GetJsonAsync<Ping>()
-                    .Result;
+                    .GetJsonAsync<Ping>());
             }
-            catch (AggregateException e)
+            catch (XillioTimeoutException)
             {
-                if (e.InnerExceptions[0] is FlurlHttpException)
-                {
-                    reachable = false;
-                    return null;
-                }
-
-                throw;
+                return null;
             }
         }
 
         private EntityResponse CallAPI(string uri, string scope)
         {
-            return uri.SetQueryParam("scope", scope)
+            return DoCall(uri.SetQueryParam("scope", scope)
                 .WithOAuthBearerToken(authentication.GetToken())
-                .GetJsonAsync<EntityResponse>()
-                .Result;
+                .GetJsonAsync<EntityResponse>());
+        }
+
+        private T DoCall<T>(Task<T> call) where T : class
+        {
+            try
+            {
+                var result = call.Result;
+                reachable = true;
+                return result;
+            }
+            catch (AggregateException e)
+            {
+                if (!(e.InnerExceptions[0] is FlurlHttpTimeoutException))
+                {
+                    throw;
+                }
+                reachable = false;
+                throw new XillioTimeoutException("A timeout was recieved from the API", e);
+            }
         }
     }
 }

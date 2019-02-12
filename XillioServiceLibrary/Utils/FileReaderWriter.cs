@@ -71,7 +71,7 @@ namespace XillioAPIService
                 LogService.Log($"Doing the actual create of {path}");
                 File.Create(path).Close();
             }
-            catch (IOException e)
+            catch (IOException)
             {
                 var timer = new Timer();
                 timer.AutoReset = false;
@@ -84,7 +84,7 @@ namespace XillioAPIService
 
                 File.Create(path).Close();
             }
-            catch (NotSupportedException e)
+            catch (NotSupportedException)
             {
                 LogService.Log($"There was a problem with the path: {path}");
                 throw;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using XillioAPIService;
 using XillioEngineSDK;
 
@@ -16,6 +17,12 @@ namespace XillioServiceLibrary
             LogService.Log("starting up the service.");
 
             api = new XillioApi("http://tenant.localhost:8080/", true);
+            while (!api.reachable)
+            {
+                LogService.Log("The Xillio API could not be reached trying again in 500 miliseconds");
+                Thread.Sleep(500);
+                api.Ping();
+            }
             RunAuthentication();
             
             //Setup other services
@@ -58,7 +65,7 @@ namespace XillioServiceLibrary
             {
                 api.Authenticate("user", "password", "client", "secret");
             }
-            catch (AggregateException e)
+            catch (AggregateException)
             {
                 LogService.Log("Could not authenticate with xillio API.");
                 throw;
