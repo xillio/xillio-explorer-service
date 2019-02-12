@@ -12,15 +12,10 @@ namespace XillioAPIService
 {
     public static class FileReaderWriter
     {
-        private static List<char> INVALID_WINDOWS_PATH_CHARACTERS =
-            new List<char>() {':', '?', '*', '"', '<', '>', '|', '/'};
-
         private static PropertiesReaderWriter _propertiesReaderWriter = new PropertiesReaderWriter();
 
         public static void WriteEntityToDisk(string path, Entity entity)
         {
-            path = MakeNameCompliant(path);
-
             if (File.Exists(path) || Directory.Exists(path)) return;
 
             if (entity.Original.FileDecorator != null)
@@ -45,8 +40,6 @@ namespace XillioAPIService
 
         public static void CreateConfigurationOnDisk(string path)
         {
-            path = MakeNameCompliant(path);
-
             if (File.Exists(path)) return;
 
             CreateDirectory(path);
@@ -109,19 +102,6 @@ namespace XillioAPIService
             {
                 return false;
             }
-        }
-
-        private static string MakeNameCompliant(string path)
-        {
-            int lastSlashIndex = path.LastIndexOf('\\');
-            string relativePath = path.Substring(lastSlashIndex + 1);
-            List<char> foundChars = INVALID_WINDOWS_PATH_CHARACTERS.Where(c => relativePath.Contains(c)).ToList();
-            foreach (var character in foundChars)
-            {
-                relativePath = relativePath.Replace(character, ' ');
-            }
-
-            return Path.Combine(path.Substring(0, lastSlashIndex), relativePath);
         }
     }
 }

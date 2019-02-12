@@ -27,15 +27,13 @@ namespace XillioAPIService
         {
             throw new NotImplementedException();
             //Create Entity and create Decorators
-            var entity = new Entity();
+            
 
             //Fill in data from custom properties
 
 
             //after making changes, you need to use this line to save them
 
-
-            return entity;
         }
     }
 }

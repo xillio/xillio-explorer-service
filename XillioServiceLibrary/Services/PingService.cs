@@ -68,7 +68,7 @@ namespace XillioAPIService
             LogService.Log("Going to do a pull from Xillio API");
 
             List<Configuration> configurations = api.GetConfigurations();
-            
+
             DeleteUnavailableConfigs(configurations);
 
             List<Configuration> newConfigs =
@@ -109,7 +109,7 @@ namespace XillioAPIService
 
             LogService.Log("Level 0 has " + children.Count + " entities.");
             int level = 0;
-            
+
             DeleteUnavailableChildren(path, children);
 
             while (children.Count > 0)
@@ -136,20 +136,39 @@ namespace XillioAPIService
 
         private void IndexChild(Tuple<Entity, string> child, List<Tuple<Entity, string>> newChildren)
         {
-            string childName = child.Item1.Original.NameDecorator.SystemName;
+            string childName = WindowsNameConventions.MakeNameCompliant(child.Item1.Original.NameDecorator.SystemName);
             string path = Path.Combine(child.Item2, childName);
             if (child.Item1.Original.ContainerDecorator != null)
             {
-                var childChildren = api.GetChildren(child.Item1).Select(c =>
-                    Tuple.Create(c, path)
-                );
-                var childChildrenList = childChildren.ToList();
-                newChildren.AddRange(childChildrenList);
+                var childChildren = GetChildChildren(child, path);
+                newChildren.AddRange(childChildren);
 
-                DeleteUnavailableChildren(path, childChildrenList);
+                DeleteUnavailableChildren(path, childChildren);
             }
 
             FileReaderWriter.WriteEntityToDisk(path, child.Item1);
+        }
+
+        private List<Tuple<Entity, string>> GetChildChildren(Tuple<Entity, string> child, string path)
+        {
+            List<Tuple<Entity, string>> childChildren = null;
+            do
+            {
+                try
+                {
+                    childChildren = api.GetChildren(child.Item1).Select(c =>
+                        Tuple.Create(c, path)
+                    ).ToList();
+                }
+                catch (XillioTimeoutException)
+                {
+                    LogService.Log("The xillio api could not be reached. Waiting 500 ms");
+                    new System.Threading.ManualResetEvent(false).WaitOne(1000);
+                }
+            } while (childChildren == null);
+
+
+            return childChildren;
         }
 
         private void DeleteUnavailableChildren(string path, List<Tuple<Entity, string>> childChildren)
@@ -158,11 +177,12 @@ namespace XillioAPIService
             {
                 return;
             }
+
             var files = Directory.GetFiles(path);
             files = files.Union(Directory.GetDirectories(path)).ToArray();
             files = files.Except(Directory.GetDirectories(path, ".xillioEntity")).ToArray();
 
-            
+
             //LogService.Log($"Found {files.Length} files and pulled {childChildren.Count()} for {path}");
             if (files.Length < childChildren.Count()) return;
             foreach (var file in files)
@@ -205,7 +225,9 @@ namespace XillioAPIService
             List<string> childNames = new List<string>();
             foreach (var child in children)
             {
-                childNames.Add(child.Item1.Original.NameDecorator.SystemName);
+                childNames.Add(
+                    WindowsNameConventions.MakeNameCompliant(child.Item1.Original.NameDecorator.SystemName)
+                );
             }
 
             return childNames;
