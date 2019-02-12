@@ -14,10 +14,5 @@ namespace XillioEngineSDK.model.decorators
         {
             HasChildren = hasChildren;
         }
-
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("hasChildren", HasChildren);
-        }
     }
 }

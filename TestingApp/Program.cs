@@ -1,4 +1,5 @@
 ﻿using System;
+using XillioAPIService;
 using XillioServiceLibrary;
 
 namespace TestingApp
@@ -12,6 +13,8 @@ namespace TestingApp
             try
             {
                 XillioService service = new XillioService();
+
+                LogService.logToConsole = true;
                 
                 service.Start();
                 Console.ReadLine();

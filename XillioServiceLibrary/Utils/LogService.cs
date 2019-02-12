@@ -7,11 +7,16 @@ namespace XillioAPIService
     {
         private static String logLocation = @"C:\TestServiceLog.txt";
         private static readonly Object lockObject = new Object();
+        public static bool logToConsole = false;
 
         public static void Log(string content)
         {
             lock (lockObject)
             {
+                if (logToConsole)
+                {
+                    Console.WriteLine(DateTime.Now.ToLongTimeString() + " " + content);
+                }
                 FileStream fs = new FileStream(logLocation, FileMode.OpenOrCreate, FileAccess.Write);
                 using (StreamWriter sw = new StreamWriter(fs))
                 {

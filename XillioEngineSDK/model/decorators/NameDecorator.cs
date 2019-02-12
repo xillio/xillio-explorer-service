@@ -6,11 +6,5 @@ namespace XillioEngineSDK.model.decorators
     {
         public string SystemName { get; set; }
         public string DisplayName { get; set; }
-        
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("systemName", SystemName);
-            info.AddValue("displayName", DisplayName);
-        }
     }
 }

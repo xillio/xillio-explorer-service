@@ -2,7 +2,7 @@
 
 namespace XillioEngineSDK.model.decorators
 {
-    public interface Decorator : ISerializable
+    public interface Decorator
     {
         
     }

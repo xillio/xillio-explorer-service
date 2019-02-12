@@ -1,8 +1,10 @@
+using System;
 using System.Runtime.Serialization;
 using XillioEngineSDK.model.decorators;
 
 namespace XillioEngineSDK.model
 {
+    [Serializable]
     public class Entity : ISerializable
     {
         public string Id { get; set; }

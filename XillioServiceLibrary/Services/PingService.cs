@@ -159,7 +159,7 @@ namespace XillioAPIService
                 return;
             }
             var files = Directory.GetFiles(path);
-            files = files.Except(Directory.GetFiles(path, "*.properties")).ToArray();
+            files = files.Except(Directory.GetFiles(path, "*.xillioEntity")).ToArray();
 
             files = files.Union(Directory.GetDirectories(path)).ToArray();
             
@@ -190,7 +190,7 @@ namespace XillioAPIService
 
             foreach (var configDir in allConfigDirs)
             {
-                if (!configNames.Contains(Path.GetDirectoryName(configDir)))
+                if (!configNames.Contains(Path.GetFileName(configDir)))
                 {
                     Directory.Delete(configDir, true);
                 }

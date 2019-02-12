@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 
 namespace XillioEngineSDK.model.decorators
@@ -22,13 +23,6 @@ namespace XillioEngineSDK.model.decorators
             Extension = extension;
             RawExtension = rawExtension;
             Size = size;
-        }
-
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("extension", Extension);
-            info.AddValue("rawExtension", RawExtension);
-            info.AddValue("size", Size);
         }
     }
 }

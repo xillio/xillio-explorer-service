@@ -3,17 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Timers;
+using Newtonsoft.Json;
 using XillioEngineSDK.model;
 
 namespace XillioAPIService
 {
     public static class FileReaderWriter
     {
-        private static List<char> INVALID_WINDOWS_PATH_CHARACTERS = new List<char>(){':', '?', '*', '"', '<', '>', '|', '/', '\\'};
+        private static List<char> INVALID_WINDOWS_PATH_CHARACTERS =
+            new List<char>() {':', '?', '*', '"', '<', '>', '|', '/'};
 
         public static void CreateFile(string path, Entity entity)
         {
+            path = MakeNameCompliant(path);
+            
             if (File.Exists(path)) return;
 
             var attributes = new List<FileAttributes>();
@@ -23,10 +28,10 @@ namespace XillioAPIService
             {
                 if (!path.Contains(".")) path = path + "." + entity.Original.FileDecorator.Extension;
 
-                path = MakeNameCompliant(path);
+                
                 try
                 {
-                    //LogService.Log($"Doing the actual create of {path}");
+                    LogService.Log($"Doing the actual create of {path}");
                     File.Create(path).Close();
                 }
                 catch (IOException e)
@@ -41,6 +46,11 @@ namespace XillioAPIService
                     }
 
                     File.Create(path).Close();
+                }
+                catch (NotSupportedException e)
+                {
+                    LogService.Log($"There was a problem with the path: {path}");
+                    throw;
                 }
 
                 attributes.Add(FileAttributes.Offline);
@@ -109,30 +119,13 @@ namespace XillioAPIService
             }
         }
 
-        /*
-        private static void WriteCustomProperty(string path, string propertyName, string propertyValue)
-        {
-            var propertiesPath = path + ".properties";
-            var property = Encoding.ASCII.GetBytes(propertyName + " : " + propertyValue);
-            if (!File.Exists(propertiesPath))
-                File.WriteAllBytes(propertiesPath, property);
-            else
-                using (var stream = File.OpenWrite(propertiesPath))
-                {
-                    stream.Write(property, 0, property.Length);
-                }
-
-            File.SetAttributes(propertiesPath, FileAttributes.Hidden | FileAttributes.NotContentIndexed);
-        }
-        */
-
         private static void WriteEntityPropertyFile(string path, Entity entity)
         {
-            var propertiesPath = path + ".properties";
-            var bFormatter = new BinaryFormatter();
+            Byte[] entityBytes = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(entity));
+            var propertiesPath = path + ".xillioEntity";
             using (var stream = File.Open(propertiesPath, FileMode.OpenOrCreate))
             {
-                bFormatter.Serialize(stream, entity);
+                stream.Write(entityBytes, 0, entityBytes.Length);
             }
 
             File.SetAttributes(propertiesPath, FileAttributes.Hidden | FileAttributes.NotContentIndexed);
@@ -140,14 +133,15 @@ namespace XillioAPIService
 
         private static string MakeNameCompliant(string path)
         {
-            List<char> foundChars =
-                INVALID_WINDOWS_PATH_CHARACTERS.Where(c => Path.GetFileName(path).Contains(c)).ToList();
+            int lastSlashIndex = path.LastIndexOf('\\');
+            string relativePath = path.Substring(lastSlashIndex+1);
+            List<char> foundChars = INVALID_WINDOWS_PATH_CHARACTERS.Where(c => relativePath.Contains(c)).ToList();
             foreach (var character in foundChars)
             {
-                path.Replace(character, '');
+                relativePath = relativePath.Replace(character, ' ');
             }
 
-            return path;
+            return Path.Combine(path.Substring(0, lastSlashIndex), relativePath);
         }
     }
 }
