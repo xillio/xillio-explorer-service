@@ -15,91 +15,83 @@ namespace XillioAPIService
         private static List<char> INVALID_WINDOWS_PATH_CHARACTERS =
             new List<char>() {':', '?', '*', '"', '<', '>', '|', '/'};
 
-        public static void CreateFile(string path, Entity entity)
+        private static PropertiesReaderWriter _propertiesReaderWriter = new PropertiesReaderWriter();
+
+        public static void WriteEntityToDisk(string path, Entity entity)
         {
             path = MakeNameCompliant(path);
-            
-            if (File.Exists(path)) return;
 
-            var attributes = new List<FileAttributes>();
-            if (entity.Original.ContainerDecorator != null) attributes.Add(FileAttributes.Directory);
+            if (File.Exists(path) || Directory.Exists(path)) return;
 
             if (entity.Original.FileDecorator != null)
             {
-                if (!path.Contains(".")) path = path + "." + entity.Original.FileDecorator.Extension;
-
-                
-                try
-                {
-                    LogService.Log($"Doing the actual create of {path}");
-                    File.Create(path).Close();
-                }
-                catch (IOException e)
-                {
-                    var timer = new Timer();
-                    timer.AutoReset = false;
-                    timer.Interval = 20000;
-                    timer.Enabled = true;
-                    timer.Elapsed += delegate { timer.Dispose(); };
-                    while (!IsFileReady(path) && timer.Enabled)
-                    {
-                    }
-
-                    File.Create(path).Close();
-                }
-                catch (NotSupportedException e)
-                {
-                    LogService.Log($"There was a problem with the path: {path}");
-                    throw;
-                }
-
-                attributes.Add(FileAttributes.Offline);
+                path = CreateFile(path, entity);
             }
             else
             {
-                Directory.CreateDirectory(path);
+                CreateDirectory(path);
+            }
+
+            if (entity.Original.ContainerDecorator != null)
+            {
+                File.SetAttributes(path, FileAttributes.Directory);
             }
 
             //LogService.Log($"Now set the properties of the File at {path}");
 
-            WriteEntityPropertyFile(path, entity);
-            SetMultipleFileAttributes(path, attributes);
+            _propertiesReaderWriter.WriteEntityPropertyFile(path, entity);
             //LogService.Log($"creating {path} is done.");
         }
 
-        public static Entity ReadFile(string path, bool isFolder)
+        public static void CreateConfigurationOnDisk(string path)
         {
-            //Create Entity and create Decorators
-            var entity = new Entity();
-            //entity.Original.NameDecorator = new NameDecorator(Path.GetFileName(path));
+            path = MakeNameCompliant(path);
 
-            //Fill in data from custom properties
+            if (File.Exists(path)) return;
 
-
-            //after making changes, you need to use this line to save them
-
-
-            return entity;
+            CreateDirectory(path);
+        }
+        
+        private static void CreateDirectory(string path)
+        {
+            Directory.CreateDirectory(path);
+            Directory.CreateDirectory($"{path}/.xillioEntity");
+            File.SetAttributes($"{path}/.xillioEntity", FileAttributes.Hidden);
         }
 
-        private static void SetMultipleFileAttributes(string path, List<FileAttributes> attributes)
+        private static string CreateFile(string path, Entity entity)
         {
-            switch (attributes.Count)
+            if (!path.Contains("."))
             {
-                case 0:
-                    break;
-                case 1:
-                    File.SetAttributes(path, attributes[0]);
-                    break;
-                case 2:
-                    File.SetAttributes(path, attributes[0] | attributes[1]);
-                    break;
-                case 3:
-                    File.SetAttributes(path, attributes[0] | attributes[1] | attributes[2]);
-                    break;
-                default:
-                    throw new ArgumentException("No more than 3 attributes are allowed. And no less then 0.");
+                path = path + "." + entity.Original.FileDecorator.Extension;
             }
+
+            try
+            {
+                LogService.Log($"Doing the actual create of {path}");
+                File.Create(path).Close();
+            }
+            catch (IOException e)
+            {
+                var timer = new Timer();
+                timer.AutoReset = false;
+                timer.Interval = 20000;
+                timer.Enabled = true;
+                timer.Elapsed += delegate { timer.Dispose(); };
+                while (!IsFileReady(path) && timer.Enabled)
+                {
+                }
+
+                File.Create(path).Close();
+            }
+            catch (NotSupportedException e)
+            {
+                LogService.Log($"There was a problem with the path: {path}");
+                throw;
+            }
+
+            File.SetAttributes(path, FileAttributes.Offline);
+            return path;
         }
 
         private static bool IsFileReady(string filename)
@@ -119,22 +111,10 @@ namespace XillioAPIService
             }
         }
 
-        private static void WriteEntityPropertyFile(string path, Entity entity)
-        {
-            Byte[] entityBytes = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(entity));
-            var propertiesPath = path + ".xillioEntity";
-            using (var stream = File.Open(propertiesPath, FileMode.OpenOrCreate))
-            {
-                stream.Write(entityBytes, 0, entityBytes.Length);
-            }
-
-            File.SetAttributes(propertiesPath, FileAttributes.Hidden | FileAttributes.NotContentIndexed);
-        }
-
         private static string MakeNameCompliant(string path)
         {
             int lastSlashIndex = path.LastIndexOf('\\');
-            string relativePath = path.Substring(lastSlashIndex+1);
+            string relativePath = path.Substring(lastSlashIndex + 1);
             List<char> foundChars = INVALID_WINDOWS_PATH_CHARACTERS.Where(c => relativePath.Contains(c)).ToList();
             foreach (var character in foundChars)
             {

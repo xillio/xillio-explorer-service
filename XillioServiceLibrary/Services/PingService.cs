@@ -88,8 +88,8 @@ namespace XillioAPIService
 
             InfoHolder.Configurations.Add(configuration.Name, tuple);
 
-            string path = InfoHolder.syncFolder + "/" + configuration.Name;
-            Directory.CreateDirectory(path);
+            string path = Path.Combine(InfoHolder.syncFolder, configuration.Name);
+            FileReaderWriter.CreateConfigurationOnDisk(path);
 
             timer.Elapsed += delegate(Object sender, ElapsedEventArgs args) { RefreshRepository(tuple); };
             RefreshRepository(tuple);
@@ -149,7 +149,7 @@ namespace XillioAPIService
                 DeleteUnavailableChildren(path, childChildrenList);
             }
 
-            FileReaderWriter.CreateFile(path, child.Item1);
+            FileReaderWriter.WriteEntityToDisk(path, child.Item1);
         }
 
         private void DeleteUnavailableChildren(string path, List<Tuple<Entity, string>> childChildren)
@@ -159,9 +159,9 @@ namespace XillioAPIService
                 return;
             }
             var files = Directory.GetFiles(path);
-            files = files.Except(Directory.GetFiles(path, "*.xillioEntity")).ToArray();
-
             files = files.Union(Directory.GetDirectories(path)).ToArray();
+            files = files.Except(Directory.GetDirectories(path, ".xillioEntity")).ToArray();
+
             
             //LogService.Log($"Found {files.Length} files and pulled {childChildren.Count()} for {path}");
             if (files.Length < childChildren.Count()) return;
@@ -173,10 +173,12 @@ namespace XillioAPIService
                 if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
                 {
                     Directory.Delete(file, true);
+                    File.Delete($"{path}/.xillioEntity/{Path.GetFileName(file)}");
                 }
                 else
                 {
                     File.Delete(file);
+                    File.Delete($"{path}/.xillioEntity/{Path.GetFileName(file)}");
                 }
             }
         }
