@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Threading;
 using Flurl;
 using Flurl.Http;
-using XillioEngineSDK.model;
 using XillioEngineSDK.responses;
 using Version = XillioEngineSDK.responses.Version;
 
@@ -13,10 +14,14 @@ namespace XillioEngineSDK
     {
         private string baseUrl;
         private Authentication authentication;
+        public bool reachable;
 
         public XillioApi(string baseUrl, bool refreshToken)
         {
             this.baseUrl = baseUrl;
+
+            Ping();
+
             authentication = refreshToken ? new Authentication(this) : new Authentication();
         }
 
@@ -50,10 +55,23 @@ namespace XillioEngineSDK
 
         public Ping Ping()
         {
-            return this.baseUrl
-                .AppendPathSegments("v2", "system", "version")
-                .GetJsonAsync<Ping>()
-                .Result;
+            try
+            {
+                return this.baseUrl
+                    .AppendPathSegments("v2", "system", "version")
+                    .GetJsonAsync<Ping>()
+                    .Result;
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerExceptions[0] is FlurlHttpException)
+                {
+                    reachable = false;
+                    return null;
+                }
+
+                throw;
+            }
         }
 
         private EntityResponse CallAPI(string uri, string scope)
@@ -63,6 +81,5 @@ namespace XillioEngineSDK
                 .GetJsonAsync<EntityResponse>()
                 .Result;
         }
-        
     }
 }

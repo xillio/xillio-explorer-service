@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using Flurl;
-using Flurl.Http;
 using XillioEngineSDK.model;
-using XillioEngineSDK.responses;
 
 namespace XillioEngineSDK
 {

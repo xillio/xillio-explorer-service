@@ -1,10 +1,11 @@
 using System;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
 using XillioEngineSDK.model.decorators;
 
 namespace XillioEngineSDK.model
 {
-    public class Entity
+    [Serializable]
+    public class Entity : ISerializable
     {
         public string Id { get; set; }
         public string Kind { get; set; }
@@ -15,6 +16,24 @@ namespace XillioEngineSDK.model
 
         public Entity()
         {
+        }
+
+        public Entity(SerializationInfo info, StreamingContext context)
+        {
+            Id = info.GetString("id");
+            Kind = info.GetString("kind");
+            Xdip = info.GetString("xdip");
+            Original = (DecoratorList)info.GetValue("original", typeof(DecoratorList));
+            Modified = (DecoratorList)info.GetValue("modified", typeof(DecoratorList));
+        }
+
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("id", Id);
+            info.AddValue("xdip", Xdip);
+            info.AddValue("kind", Kind);
+            info.AddValue("original", Original);
+            info.AddValue("modified", Modified);
         }
     }
 }

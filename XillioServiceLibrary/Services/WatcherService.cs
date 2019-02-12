@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.ServiceProcess;
 using XillioEngineSDK;
 using XillioEngineSDK.model;
 using XillioEngineSDK.model.decorators;
@@ -9,8 +8,14 @@ namespace XillioAPIService
 {
     public class WatcherService : IService
     {
-        public XillioApi api { get; set; }
+        private XillioApi api;
         private FileSystemWatcher watcher;
+
+        public WatcherService(XillioApi api)
+        {
+            this.api = api;
+            Start();
+        }
 
         public void Start()
         {
