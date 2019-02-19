@@ -53,12 +53,14 @@ namespace XillioAPIService
         {
             string extension = Path.GetExtension(args.FullPath);
             //TODO get all info from file
+            
+            
 
 
             Entity entity = new Entity();
             //entity.Original.NameDecorator = new NameDecorator(args.Name);
             //TODO fix this
-            entity.Original.ContainerDecorator = new ContainerDecorator(Directory.Exists(args.FullPath));
+            
 
             using (FileStream stream = File.OpenRead(args.FullPath))
             {
@@ -73,7 +75,7 @@ namespace XillioAPIService
 
         private void HandleDelete(object sender, FileSystemEventArgs args)
         {
-            api.DeleteEntity(GetConfiguration(args.FullPath), args.FullPath.Substring(InfoHolder.syncFolder.Length));
+            //api.DeleteEntity(GetConfiguration(args.FullPath), args.FullPath.Substring(InfoHolder.syncFolder.Length));
         }
 
         private void HandleChange(object sender, FileSystemEventArgs args)

@@ -14,7 +14,12 @@ namespace XillioAPIService
             List<char> foundChars = INVALID_WINDOWS_PATH_CHARACTERS.Where(c => name.Contains(c)).ToList();
             foreach (var character in foundChars)
             {
-                name = name.Replace(character, '');
+                name = name.Replace(character, ' ');
+            }
+
+            if (name.EndsWith("."))
+            {
+                name.Remove(name.Length - 1);
             }
 
             return name;

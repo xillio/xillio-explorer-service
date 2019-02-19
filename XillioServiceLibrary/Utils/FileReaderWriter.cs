@@ -7,6 +7,7 @@ using System.Text;
 using System.Timers;
 using Newtonsoft.Json;
 using XillioEngineSDK.model;
+using XillioEngineSDK.model.decorators;
 
 namespace XillioAPIService
 {
@@ -43,6 +44,20 @@ namespace XillioAPIService
             if (File.Exists(path)) return;
 
             CreateDirectory(path);
+        }
+
+        public static Entity ReadEntityFromDisk(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static Entity ReadNewFile(string path)
+        {
+            Entity entity = new Entity();
+            entity.Original = new DecoratorList();
+            entity.Original.CreatedDecorator = new CreatedDecorator();
+            File.GetCreationTime(path);
+            return entity;
         }
         
         private static void CreateDirectory(string path)

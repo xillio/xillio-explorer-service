@@ -10,7 +10,6 @@ namespace XillioEngineSDK
     public partial class XillioApi
     {
         
-
         public Entity GetEntity(EntityReference reference)
         {
             return GetEntity(reference.Id);
